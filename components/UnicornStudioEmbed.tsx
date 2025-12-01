@@ -2,35 +2,30 @@
 
 import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    UnicornStudio?: {
-      isInitialized: boolean;
-      init?: () => void;
-    };
-  }
-}
-
 export default function UnicornStudioEmbed() {
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const initUnicornStudio = () => {
-      if (window.UnicornStudio && window.UnicornStudio.init && !window.UnicornStudio.isInitialized) {
-        window.UnicornStudio.init();
-        window.UnicornStudio.isInitialized = true;
+      if (window.UnicornStudio?.init) {
+        try {
+          window.UnicornStudio.init();
+        } catch (e) {
+          console.error("UnicornStudio init error", e);
+        }
       }
     };
 
     if (!window.UnicornStudio) {
-      window.UnicornStudio = { isInitialized: false };
       const script = document.createElement("script");
       script.src =
         "https://cdn.jsdelivr.net/gh/hiunicornstudio/unicornstudio.js@v1.4.36/dist/unicornStudio.umd.js";
-      script.onload = initUnicornStudio;
+      script.async = true;
+      script.onload = () => initUnicornStudio();
       script.onerror = () => console.error("Failed to load UnicornStudio script");
       (document.head || document.body).appendChild(script);
     } else {
+      // Script already loaded – just re-init when navigating back
       initUnicornStudio();
     }
   }, []);
